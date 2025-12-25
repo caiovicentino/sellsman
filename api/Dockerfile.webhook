@@ -1,0 +1,48 @@
+# Dockerfile for WhatsApp Webhook Server
+# Lightweight standalone Flask server for webhook processing
+
+FROM python:3.11-slim
+
+LABEL maintainer="Orquestr.ai <contact@orquestr.ai>"
+LABEL description="WhatsApp Webhook Server - Standalone Flask server for processing WAHA webhooks"
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements-webhook.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-webhook.txt
+
+# Copy application files
+COPY whatsapp_webhook_server.py .
+COPY services/ ./services/
+COPY configs/ ./configs/
+COPY models/ ./models/
+
+# Create log and data directories
+RUN mkdir -p /var/log/webhook /app/data
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV WEBHOOK_HOST=0.0.0.0
+ENV WEBHOOK_PORT=5002
+ENV LOG_FILE=/var/log/webhook/whatsapp_webhook.log
+
+# Expose port
+EXPOSE 5002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5002/health || exit 1
+
+# Run server
+CMD ["python", "whatsapp_webhook_server.py"]

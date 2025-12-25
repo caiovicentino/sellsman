@@ -1,0 +1,12 @@
+# Requirements for WhatsApp Webhook Server
+# Minimal dependencies for standalone operation
+
+# Core
+Flask==3.0.0
+flask-cors==4.0.0
+
+# HTTP Client
+httpx==0.25.2
+
+# Environment variables
+python-dotenv==1.0.0
